@@ -634,6 +634,7 @@ impl RegistryReader {
         offset: u64,
         allow_retry: bool,
     ) -> RegistryResult<usize> {
+        println!("CSG-M4GIC: KS (nydus) _try_read for blob_id {:?}", self.blob_id);
         let url = format!("/blobs/sha256:{}", self.blob_id);
         let url = self
             .state
@@ -661,6 +662,7 @@ impl RegistryReader {
                 .map_err(RegistryError::Request)?;
 
             // The request has expired or has been denied, need to re-request
+            println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with cached redirect {:?}", self.blob_id, resp);
             if allow_retry
                 && [StatusCode::UNAUTHORIZED, StatusCode::FORBIDDEN].contains(&resp.status())
             {
@@ -702,10 +704,12 @@ impl RegistryReader {
                     return Err(e);
                 }
             };
+            println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with no cached redirect {:?}", self.blob_id, resp);
             let status = resp.status();
 
             // Handle redirect request and cache redirect url
             if REDIRECTED_STATUS_CODE.contains(&status) {
+                println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} handling chache redirect", self.blob_id);
                 if let Some(location) = resp.headers().get("location") {
                     let location = location.to_str().unwrap();
                     let mut location = Url::parse(location)
