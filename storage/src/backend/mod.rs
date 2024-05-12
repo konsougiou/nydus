@@ -151,6 +151,7 @@ pub trait BlobReader: Send + Sync {
 
     /// Read as much as possible data into buffer.
     fn read_all(&self, buf: &mut [u8], offset: u64) -> BackendResult<usize> {
+        println!("CSG-M4GIC: KS (nydus) read_all for blob_id: {:?}", self.blob_id);
         let mut off = 0usize;
         let mut left = buf.len();
 
@@ -180,6 +181,7 @@ pub trait BlobReader: Send + Sync {
         offset: u64,
         max_size: usize,
     ) -> BackendResult<usize> {
+        println!("CSG-M4GIC: KS (nydus) readv for blob_id: {:?}", self.blob_id);
         if bufs.len() == 1 && max_size >= bufs[0].len() {
             let buf = unsafe { std::slice::from_raw_parts_mut(bufs[0].as_ptr(), bufs[0].len()) };
             self.read(buf, offset)
