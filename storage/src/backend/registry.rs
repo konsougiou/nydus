@@ -634,7 +634,7 @@ impl RegistryReader {
         offset: u64,
         allow_retry: bool,
     ) -> RegistryResult<usize> {
-        println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
+        //println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
         let url = format!("/blobs/sha256:{}", self.blob_id);
         let url = self
             .state
@@ -661,7 +661,7 @@ impl RegistryReader {
                 )
                 .map_err(RegistryError::Request)?;
             
-                println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with cached redirect {:?}", self.blob_id, resp);
+                //println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with cached redirect {:?}", self.blob_id, resp);
 
             // The request has expired or has been denied, need to re-request
             if allow_retry
