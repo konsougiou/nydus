@@ -522,7 +522,7 @@ impl TocEntryList {
     /// Extract `image.boot` and/or `blob.digest` from a [BlobReader] into files.
     pub fn extract_from_blob<P: AsRef<Path>>(
         &self,
-        reader: Arc<dyn >,
+        reader: Arc<dyn BlobReader>,
         bootstrap: Option<P>,
         digest: Option<P>,
     ) -> Result<()> {
