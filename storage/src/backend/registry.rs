@@ -707,7 +707,7 @@ impl RegistryReader {
             };
             let status = resp.status();
             
-            println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with no cached redirect {:?}", self.blob_id, resp);
+            //println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with no cached redirect {:?}", self.blob_id, resp);
             // Handle redirect request and cache redirect url
             if REDIRECTED_STATUS_CODE.contains(&status) {
                 if let Some(location) = resp.headers().get("location") {
