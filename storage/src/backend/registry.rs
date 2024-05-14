@@ -5,11 +5,13 @@
 //! Storage backend driver to access blobs on container image registry.
 use std::collections::HashMap;
 use std::error::Error;
-use std::io::{Read, Result};
+use std::io::{self, Read, Result};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{fmt, thread};
+use std::fs::File;
+use std::path::Path;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
@@ -635,6 +637,24 @@ impl RegistryReader {
         allow_retry: bool,
     ) -> RegistryResult<usize> {
         //println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
+
+         //// PATCH ////
+
+        let cache_path = format!("/opt/nydus/cache/{}", self.blob_id);
+        let path = Path::new(&cache_path);
+    
+        // Check if the cached file exists and read from it
+        if path.exists() {
+            println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}");
+            let mut file = File::open(path).map_err(|e| RegistryError::Io(e.to_string()))?;
+            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Io(e.to_string()))?;
+            let bytes_read = file.read(buf).map_err(|e| RegistryError::Io(e.to_string()))?;
+            println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}");
+            return Ok(bytes_read);
+        }
+
+        //// PATCH ////
+
         let url = format!("/blobs/sha256:{}", self.blob_id);
         let url = self
             .state
