@@ -645,11 +645,11 @@ impl RegistryReader {
     
         // Check if the cached file exists and read from it
         if path.exists() {
-            println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}");
-            let mut file = File::open(path).map_err(|e| RegistryError::Io(e.to_string()))?;
-            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Io(e.to_string()))?;
-            let bytes_read = file.read(buf).map_err(|e| RegistryError::Io(e.to_string()))?;
-            println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}");
+            println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
+            let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
+            let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+            println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
             return Ok(bytes_read);
         }
 
