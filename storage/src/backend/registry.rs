@@ -5,7 +5,7 @@
 //! Storage backend driver to access blobs on container image registry.
 use std::collections::HashMap;
 use std::error::Error;
-use std::io::{self, Read, Result};
+use std::io::{self, Read, Result, Seek};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
