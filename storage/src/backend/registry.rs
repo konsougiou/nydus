@@ -638,9 +638,9 @@ impl RegistryReader {
     ) -> RegistryResult<usize> {
         //println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
 
-         //// PATCH ////
+        //// PATCH ////
 
-        let cache_path = format!("/opt/nydus/cache/{}", self.blob_id);
+        let cache_path = format!("/run/kata-containers/blob_cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
     
         // Check if the cached file exists and read from it
