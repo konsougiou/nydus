@@ -640,7 +640,7 @@ impl RegistryReader {
 
         //// PATCH ////
 
-        let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
+        let cache_path = format!("/run/kata-containers/blob_cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
     
         // Check if the cached file exists and read from it
