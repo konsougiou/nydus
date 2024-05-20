@@ -731,7 +731,7 @@ impl BlobCompressionContextInfo {
         reader: &Arc<dyn BlobReader>,
         buffer: &mut [u8],
     ) -> Result<()> {
-        println!("CSG-M4GIC: KS (nydus) read_metadata blob_info: {:?}", blob_info);
+        //println!("CSG-M4GIC: KS (nydus) read_metadata blob_info: {:?}", blob_info);
         trace!(
             "blob_info compressor {} ci_compressor {} ci_compressed_size {} ci_uncompressed_size {}",
             blob_info.compressor(),
