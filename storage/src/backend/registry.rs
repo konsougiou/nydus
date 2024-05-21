@@ -643,7 +643,7 @@ impl RegistryReader {
         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
     
-        Check if the cached file exists and read from it
+        //Check if the cached file exists and read from it
         if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
