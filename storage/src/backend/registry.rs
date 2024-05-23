@@ -750,11 +750,15 @@ impl RegistryReader {
 
         if path.exists() {
             let offset = offset as usize;
-            if let Ok(bytes_read) = self.cache.try_read(&self.blob_id, buf, offset) {
-                println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
-                return Ok(bytes_read);
+            match self.cache.try_read(&self.blob_id, buf, offset) {
+                Ok(bytes_read) => {
+                    println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
+                    return Ok(bytes_read);
+                }
+                Err(e) => {
+                    println!("CSG-M4GIC: KS (nydus) cache.try_read returned error: {:?}", e);
+                }
             }
-            println!("CSG-M4GIC: KS (nydus) cache.try_read returned error,: {:?}", bytes_read);
         }
 
         //// PATCH ////
@@ -1124,7 +1128,7 @@ impl BlobBackend for Registry {
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
-            blob_cache: blob_cache.clone() //// PATCH ////
+            cache: blob_cache.clone() //// PATCH ////
         }))
     }
 }
