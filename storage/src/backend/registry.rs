@@ -505,12 +505,72 @@ impl First {
     }
 }
 
+ //// BLOB CACHE ////
+
+ type BlobId = String;
+ type BlobData = Vec<u8>;
+ 
+ 
+ struct BlobCache {
+     data: RwLock<Option<Arc<BlobData>>>,
+ }
+ 
+ impl BlobCache {
+     fn new() -> Self {
+         Self {
+             data: RwLock::new(None),
+         }
+     }
+ 
+     fn get_blob(&self) -> Option<Arc<BlobData>> {
+         let data = self.data.read().unwrap();
+         data.clone()
+     }
+ 
+     fn insert_blob(&self, data: BlobData) {
+         let mut cache = self.data.write().unwrap();
+         *cache = Some(Arc::new(data));
+     }
+ 
+     fn read_blob_from_disk(&self, blob_id: &str) -> RegistryResult<BlobData> {
+         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", blob_id);
+         let path = Path::new(&cache_path);
+         if path.exists() {
+             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+             let mut data = Vec::new();
+             file.read_to_end(&mut data).map_err(|e| RegistryError::Common(e.to_string()))?;
+             Ok(data)
+         } else {
+             Err(RegistryError::Common("File not found".to_string()))
+         }
+     }
+ 
+     fn try_read(&self, blob_id: &str, mut buf: &mut [u8], offset: usize) -> RegistryResult<usize> {
+         if let Some(blob_data) = self.get_blob() {
+             let end = (offset + buf.len()).min(blob_data.len());
+             buf.copy_from_slice(&blob_data[offset..end]);
+             Ok(end - offset)
+         } else {
+             let blob_data = self.read_blob_from_disk(blob_id)?;
+             let end = (offset + buf.len()).min(blob_data.len());
+             buf.copy_from_slice(&blob_data[offset..end]);
+             self.insert_blob(blob_data);
+             Ok(end - offset)
+         }
+     }
+ }
+
+
+//// BLOB CACHE ////
+
+
 struct RegistryReader {
     blob_id: String,
     connection: Arc<Connection>,
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
+    cache: Arc<BlobCache>, //// PATCH ////
 }
 
 impl RegistryReader {
@@ -633,6 +693,7 @@ impl RegistryReader {
     /// Request:  GET https://raw-blob-storage-host.com/signature=x
     /// Response: status: 200 Ok / 403 Forbidden
     /// If responding 403, we need to repeat step one
+
     fn _try_read(
         &self,
         mut buf: &mut [u8],
@@ -671,18 +732,29 @@ impl RegistryReader {
 
          //// MEM MAPPING ////
 
-         if path.exists() {
-            let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-            let mmap = unsafe { Mmap::map(&file).map_err(|e| RegistryError::Common(e.to_string()))? };
+        //  if path.exists() {
+        //     let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+        //     let mmap = unsafe { Mmap::map(&file).map_err(|e| RegistryError::Common(e.to_string()))? };
             
-            let start = offset as usize;
-            let end = start + buf.len();
-            if end <= mmap.len() {
-                buf.copy_from_slice(&mmap[start..end]);
-                return Ok(buf.len());
-            } else {
-                return Err(RegistryError::Common("Read out of bounds".to_string()));
+        //     let start = offset as usize;
+        //     let end = start + buf.len();
+        //     if end <= mmap.len() {
+        //         buf.copy_from_slice(&mmap[start..end]);
+        //         return Ok(buf.len());
+        //     } else {
+        //         return Err(RegistryError::Common("Read out of bounds".to_string()));
+        //     }
+        // }
+
+        //// BLOC CACHE ////
+
+        if path.exists() {
+            let offset = offset as usize;
+            if let Ok(bytes_read) = self.cache.try_read(&self.blob_id, buf, offset) {
+                println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
+                return Ok(bytes_read);
             }
+            println!("CSG-M4GIC: KS (nydus) cache.try_read returned error,: {:?}", bytes_read);
         }
 
         //// PATCH ////
@@ -1045,12 +1117,14 @@ impl BlobBackend for Registry {
     }
 
     fn get_reader(&self, blob_id: &str) -> BackendResult<Arc<dyn BlobReader>> {
+        let blob_cache = Arc::new(BlobCache::new()); //// PATCH ////
         Ok(Arc::new(RegistryReader {
             blob_id: blob_id.to_owned(),
             state: self.state.clone(),
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
+            blob_cache: blob_cache.clone() //// PATCH ////
         }))
     }
 }
