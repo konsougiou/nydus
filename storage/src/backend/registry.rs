@@ -507,58 +507,58 @@ impl First {
 
  //// BLOB CACHE ////
 
- type BlobId = String;
- type BlobData = Vec<u8>;
+//  type BlobId = String;
+//  type BlobData = Vec<u8>;
  
  
- struct BlobCache {
-     data: RwLock<Option<Arc<BlobData>>>,
- }
+//  struct BlobCache {
+//      data: RwLock<Option<Arc<BlobData>>>,
+//  }
  
- impl BlobCache {
-     fn new() -> Self {
-         Self {
-             data: RwLock::new(None),
-         }
-     }
+//  impl BlobCache {
+//      fn new() -> Self {
+//          Self {
+//              data: RwLock::new(None),
+//          }
+//      }
  
-     fn get_blob(&self) -> Option<Arc<BlobData>> {
-         let data = self.data.read().unwrap();
-         data.clone()
-     }
+//      fn get_blob(&self) -> Option<Arc<BlobData>> {
+//          let data = self.data.read().unwrap();
+//          data.clone()
+//      }
  
-     fn insert_blob(&self, data: BlobData) {
-         let mut cache = self.data.write().unwrap();
-         *cache = Some(Arc::new(data));
-     }
+//      fn insert_blob(&self, data: BlobData) {
+//          let mut cache = self.data.write().unwrap();
+//          *cache = Some(Arc::new(data));
+//      }
  
-     fn read_blob_from_disk(&self, blob_id: &str) -> RegistryResult<BlobData> {
-         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", blob_id);
-         let path = Path::new(&cache_path);
-         if path.exists() {
-             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-             let mut data = Vec::new();
-             file.read_to_end(&mut data).map_err(|e| RegistryError::Common(e.to_string()))?;
-             Ok(data)
-         } else {
-             Err(RegistryError::Common("File not found".to_string()))
-         }
-     }
+//      fn read_blob_from_disk(&self, blob_id: &str) -> RegistryResult<BlobData> {
+//          let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", blob_id);
+//          let path = Path::new(&cache_path);
+//          if path.exists() {
+//              let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+//              let mut data = Vec::new();
+//              file.read_to_end(&mut data).map_err(|e| RegistryError::Common(e.to_string()))?;
+//              Ok(data)
+//          } else {
+//              Err(RegistryError::Common("File not found".to_string()))
+//          }
+//      }
  
-     fn try_read(&self, blob_id: &str, mut buf: &mut [u8], offset: usize) -> RegistryResult<usize> {
-         if let Some(blob_data) = self.get_blob() {
-             let end = (offset + buf.len()).min(blob_data.len());
-             buf.copy_from_slice(&blob_data[offset..end]);
-             Ok(end - offset)
-         } else {
-             let blob_data = self.read_blob_from_disk(blob_id)?;
-             let end = (offset + buf.len()).min(blob_data.len());
-             buf.copy_from_slice(&blob_data[offset..end]);
-             self.insert_blob(blob_data);
-             Ok(end - offset)
-         }
-     }
- }
+//      fn try_read(&self, blob_id: &str, mut buf: &mut [u8], offset: usize) -> RegistryResult<usize> {
+//          if let Some(blob_data) = self.get_blob() {
+//              let end = (offset + buf.len()).min(blob_data.len());
+//              buf.copy_from_slice(&blob_data[offset..end]);
+//              Ok(end - offset)
+//          } else {
+//              let blob_data = self.read_blob_from_disk(blob_id)?;
+//              let end = (offset + buf.len()).min(blob_data.len());
+//              buf.copy_from_slice(&blob_data[offset..end]);
+//              self.insert_blob(blob_data);
+//              Ok(end - offset)
+//          }
+//      }
+//  }
 
 
 //// BLOB CACHE ////
@@ -710,15 +710,14 @@ impl RegistryReader {
 
          //// DEFAULT ////
 
-        //Check if the cached file exists and read from it
-        // if path.exists() {
-        //     //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
-        //     let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
-        //     return Ok(bytes_read);
-        // }
+        if path.exists() {
+            //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
+            let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
+            let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+            //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
+            return Ok(bytes_read);
+        }
 
         //// BUFFERED IO ////
 
@@ -748,18 +747,18 @@ impl RegistryReader {
 
         //// BLOC CACHE ////
 
-        if path.exists() {
-            let offset = offset as usize;
-            match self.cache.try_read(&self.blob_id, buf, offset) {
-                Ok(bytes_read) => {
-                    println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
-                    return Ok(bytes_read);
-                }
-                Err(e) => {
-                    println!("CSG-M4GIC: KS (nydus) cache.try_read returned error: {:?}", e);
-                }
-            }
-        }
+        // if path.exists() {
+        //     let offset = offset as usize;
+        //     match self.cache.try_read(&self.blob_id, buf, offset) {
+        //         Ok(bytes_read) => {
+        //             println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
+        //             return Ok(bytes_read);
+        //         }
+        //         Err(e) => {
+        //             println!("CSG-M4GIC: KS (nydus) cache.try_read returned error: {:?}", e);
+        //         }
+        //     }
+        // }
 
         //// PATCH ////
 
@@ -1121,14 +1120,14 @@ impl BlobBackend for Registry {
     }
 
     fn get_reader(&self, blob_id: &str) -> BackendResult<Arc<dyn BlobReader>> {
-        let blob_cache = Arc::new(BlobCache::new()); //// PATCH ////
+        //let blob_cache = Arc::new(BlobCache::new()); //// PATCH ////
         Ok(Arc::new(RegistryReader {
             blob_id: blob_id.to_owned(),
             state: self.state.clone(),
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
-            cache: blob_cache.clone() //// PATCH ////
+            //cache: blob_cache.clone() //// PATCH ////
         }))
     }
 }
