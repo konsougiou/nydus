@@ -22,6 +22,9 @@ lazy_static = "1.4.0"
 leaky-bucket = { version = "0.12.1", optional = true }
 libc = "0.2"
 log = "0.4.8"
+#extra
+memmap2 = "0.5.3"
+#extra
 nix = "0.24"
 reqwest = { version = "0.11.14", features = ["blocking", "json"], optional = true }
 serde = { version = "1.0.110", features = ["serde_derive", "rc"] }

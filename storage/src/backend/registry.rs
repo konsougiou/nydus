@@ -13,7 +13,8 @@ use std::{fmt, thread};
 
 use std::fs::File;
 use std::path::Path;
-use std::io::{BufReader, SeekFrom};
+use std::io::{SeekFrom};
+use memmap2::Mmap;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
@@ -645,6 +646,9 @@ impl RegistryReader {
         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
     
+
+         //// DEFAULT ////
+
         //Check if the cached file exists and read from it
         // if path.exists() {
         //     //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
@@ -655,12 +659,30 @@ impl RegistryReader {
         //     return Ok(bytes_read);
         // }
 
-        if path.exists() {
+        //// BUFFERED IO ////
+
+        // if path.exists() {
+        //     let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+        //     let mut reader = BufReader::new(file);
+        //     reader.seek(SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
+        //     let bytes_read = reader.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+        //     return Ok(bytes_read);
+        // }
+
+         //// MEM MAPPING ////
+
+         if path.exists() {
             let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-            let mut reader = BufReader::new(file);
-            reader.seek(SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
-            let bytes_read = reader.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
-            return Ok(bytes_read);
+            let mmap = unsafe { Mmap::map(&file).map_err(|e| RegistryError::Common(e.to_string()))? };
+            
+            let start = offset as usize;
+            let end = start + buf.len();
+            if end <= mmap.len() {
+                buf.copy_from_slice(&mmap[start..end]);
+                return Ok(buf.len());
+            } else {
+                return Err(RegistryError::Common("Read out of bounds".to_string()));
+            }
         }
 
         //// PATCH ////
