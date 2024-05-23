@@ -570,7 +570,7 @@ struct RegistryReader {
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
-    cache: Arc<BlobCache>, //// PATCH ////
+    //cache: Arc<BlobCache>, //// PATCH ////
 }
 
 impl RegistryReader {
