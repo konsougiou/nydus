@@ -13,7 +13,7 @@ use std::{fmt, thread};
 
 use std::fs::File;
 use std::path::Path;
-use std::io::{self, BufReader, Read, Seek, SeekFrom};
+use std::io::{BufReader, SeekFrom};
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
