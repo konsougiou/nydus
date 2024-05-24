@@ -8,7 +8,7 @@ use std::error::Error;
 use std::io::{self, Read, Result, Seek};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once,  Mutex, RwLock};
-use std::time::{Duration, SystemTime, Instant, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{fmt, thread};
 
 use std::fs::File;
@@ -563,7 +563,7 @@ impl First {
 
 //// BLOB CACHE ////
 
-
+#[derive(Debug)]
 struct RegistryReader {
     blob_id: String,
     connection: Arc<Connection>,
@@ -713,21 +713,22 @@ impl RegistryReader {
 
         if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
-            let start = Instant::now();
+
+            //let start = Instant::now();
 
             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
             file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
             let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
-            let duration = start.elapsed();
-            let mut total_read_time = self.total_read_time.lock().unwrap();
-            *total_read_time += duration;
+            //let duration = start.elapsed();
+            //let mut total_read_time = self.total_read_time.lock().unwrap();
+            //*total_read_time += duration;
 
-            let log_time_threshold = Duration::from_millis(100);
+            //let log_time_threshold = Duration::from_millis(100);
             
-            if *total_read_time > log_time_threshold {
-                println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
-            }
+            // if *total_read_time > log_time_threshold {
+            //     println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
+            // }
 
             return Ok(bytes_read);
         }
@@ -801,7 +802,7 @@ impl RegistryReader {
                 )
                 .map_err(RegistryError::Request)?;
             
-                println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with cached redirect {:?}", self.blob_id, resp);
+                //println!("CSG-M4GIC: KS (nydus) resp for blob_id: {:?} with cached redirect {:?}", self.blob_id, resp);
 
             // The request has expired or has been denied, need to re-request
             if allow_retry
