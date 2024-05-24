@@ -172,7 +172,7 @@ pub trait BlobReader: Send + Sync + Debug {
 
         let duration = start.elapsed();
 
-        println!("CSG-M4GIC: KS (nydus) read all time spent: {:?}", duration;
+        println!("CSG-M4GIC: KS (nydus) read all time spent: {:?}", duration);
 
         Ok(off as usize)
     }
