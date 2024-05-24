@@ -45,6 +45,7 @@ impl From<LocalFsError> for BackendError {
     }
 }
 
+#[derive(Debug)]
 struct LocalFsEntry {
     id: String,
     file: File,

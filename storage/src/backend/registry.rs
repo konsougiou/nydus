@@ -175,6 +175,7 @@ impl fmt::Display for Scheme {
     }
 }
 
+#[derive(Debug)]
 struct RegistryState {
     // HTTP scheme like: https, http
     scheme: Scheme,
@@ -442,7 +443,7 @@ impl RegistryState {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct First {
     inner: Arc<ArcSwap<Once>>,
 }
