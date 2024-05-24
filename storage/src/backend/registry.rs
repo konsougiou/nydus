@@ -175,7 +175,6 @@ impl fmt::Display for Scheme {
     }
 }
 
-#[derive(Debug)]
 struct RegistryState {
     // HTTP scheme like: https, http
     scheme: Scheme,
@@ -443,7 +442,6 @@ impl RegistryState {
     }
 }
 
-#[derive(Debug, Clone)]
 struct First {
     inner: Arc<ArcSwap<Once>>,
 }
@@ -564,7 +562,6 @@ impl First {
 
 //// BLOB CACHE ////
 
-#[derive(Debug)]
 struct RegistryReader {
     blob_id: String,
     connection: Arc<Connection>,

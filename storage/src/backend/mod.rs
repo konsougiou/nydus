@@ -17,7 +17,6 @@
 use std::fmt;
 use std::io::Read;
 use std::{sync::Arc, time::Duration, time::Instant};
-use std::fmt::Debug;
 
 use fuse_backend_rs::file_buf::FileVolatileSlice;
 use nydus_utils::{
@@ -97,7 +96,7 @@ impl fmt::Display for BackendError {
 pub type BackendResult<T> = std::result::Result<T, BackendError>;
 
 /// Trait to read data from a on storage backend.
-pub trait BlobReader: Send + Sync + Debug {
+pub trait BlobReader: Send + Sync {
     /// Get size of the blob file.
     fn blob_size(&self) -> BackendResult<u64>;
 
@@ -157,7 +156,7 @@ pub trait BlobReader: Send + Sync + Debug {
         let mut left = buf.len();
 
 
-        println!("CSG-M4GIC: KS (nydus) read_all for BlobReader {:?}", self);
+        println!("CSG-M4GIC: KS (nydus) read_all for BlobReader");
 
         let start = Instant::now();
 
