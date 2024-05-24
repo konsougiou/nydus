@@ -442,6 +442,7 @@ impl RegistryState {
     }
 }
 
+#[derive(Clone)]
 struct First {
     inner: Arc<ArcSwap<Once>>,
 }
