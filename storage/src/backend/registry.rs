@@ -10,6 +10,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once, RwLock};
 use std::time::{Duration, SystemTime, Instant, UNIX_EPOCH};
 use std::{fmt, thread};
+use std::cell::RefCell;
 
 use std::fs::File;
 use std::path::Path;
