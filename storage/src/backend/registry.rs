@@ -8,7 +8,7 @@ use std::error::Error;
 use std::io::{self, Read, Result, Seek};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once, RwLock};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, Instant, UNIX_EPOCH};
 use std::{fmt, thread};
 
 use std::fs::File;
@@ -570,6 +570,7 @@ struct RegistryReader {
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
+    total_read_time: Duration,
     //cache: Arc<BlobCache>, //// PATCH ////
 }
 
@@ -712,10 +713,16 @@ impl RegistryReader {
 
         if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
+            let start = Instant::now();
+
             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
             file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
             let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
+            let duration = start.elapsed();
+            self.total_read_time += duration;
+            
+            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, self.total_read_time);
             return Ok(bytes_read);
         }
 
@@ -1127,6 +1134,7 @@ impl BlobBackend for Registry {
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
+            total_read_time: Duration::new(0, 0),
             //cache: blob_cache.clone() //// PATCH ////
         }))
     }
