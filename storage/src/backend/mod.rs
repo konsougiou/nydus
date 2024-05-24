@@ -16,8 +16,8 @@
 
 use std::fmt;
 use std::io::Read;
-use std::{sync::Arc, time::Duration};
-use std::time::{Duration, Instant}
+use std::{sync::Arc, time::Duration, time::Instant};
+use std::fmt::Debug;
 
 use fuse_backend_rs::file_buf::FileVolatileSlice;
 use nydus_utils::{
