@@ -570,7 +570,7 @@ struct RegistryReader {
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
-    total_read_time: Duration,
+    total_read_time: RefCell<Duration>,
     //cache: Arc<BlobCache>, //// PATCH ////
 }
 
@@ -720,9 +720,9 @@ impl RegistryReader {
             let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
             let duration = start.elapsed();
-            self.total_read_time += duration;
+            *self.total_read_time.borrow_mut() += duration;
             
-            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, self.total_read_time);
+            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *self.total_read_time.borrow_mut());
             return Ok(bytes_read);
         }
 
@@ -1134,7 +1134,7 @@ impl BlobBackend for Registry {
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
-            total_read_time: Duration::new(0, 0),
+            total_read_time: RefCell::new(Duration::new(0, 0)),
             //cache: blob_cache.clone() //// PATCH ////
         }))
     }
