@@ -722,11 +722,8 @@ impl RegistryReader {
             let duration = start.elapsed();
             let mut total_read_time = self.total_read_time.lock().unwrap();
             *total_read_time += duration;
-
-            let hardcoded_blob_ids = ["92182a3da467585a1d95ae40f7743d7fe26ca7a90a50681ff55fb2ec6f37b00d", "e6afae4885123a820c042d95491276b70678a2431806d5b6c254ea5ddefa4962", "0d6c7f635bfb09b3b2df91e295be099b05364412934bc4fe453329e993281dae"];
-            let log_time_threshold = Duration::from_millis(100);
             
-            if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && *total_read_time > log_time_threshold {
+            if *total_read_time > log_time_threshold {
                 println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
             }
 
