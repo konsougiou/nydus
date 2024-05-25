@@ -711,7 +711,7 @@ impl RegistryReader {
 
          //// DEFAULT ////
 
-        if path.exists() && false {
+        if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
             //let start = Instant::now();
