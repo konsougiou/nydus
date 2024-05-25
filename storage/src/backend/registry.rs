@@ -711,7 +711,7 @@ impl RegistryReader {
 
          //// DEFAULT ////
 
-        if path.exists() {
+        if path.exists() && false {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
             //let start = Instant::now();
@@ -980,7 +980,7 @@ impl BlobReader for RegistryReader {
         if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && *total_read_time > log_time_threshold && *counter % 10 == 0 { 
             println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}, counter: {:?}", self.blob_id, *total_read_time, *counter);
         }
-        
+
         *counter += 1;
 
         result
