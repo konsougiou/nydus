@@ -712,7 +712,7 @@ impl RegistryReader {
         //// uio ////
 
         if let Some(ref file) = self.cache_file {
-            return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))?
+            return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
         }
 
         //let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
