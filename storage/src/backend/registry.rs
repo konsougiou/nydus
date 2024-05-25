@@ -712,6 +712,7 @@ impl RegistryReader {
         //// uio ////
 
         if let Some(ref file) = self.cache_file {
+            println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
             return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
         }
 
