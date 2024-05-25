@@ -570,6 +570,7 @@ struct RegistryReader {
     metrics: Arc<BackendMetrics>,
     first: First,
     total_read_time: Mutex<Duration>,
+    counter: Mutex<u32>,
     //cache: Arc<BlobCache>, //// PATCH ////
 }
 
@@ -972,12 +973,15 @@ impl BlobReader for RegistryReader {
 
         let duration = start.elapsed();
         let mut total_read_time = self.total_read_time.lock().unwrap();
+        let mut counter = self.counter.lock().unwrap();
+
         *total_read_time += duration;
 
-        
-        if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && *total_read_time > log_time_threshold { 
-            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
+        if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && *total_read_time > log_time_threshold && *counter % 10 == 0 { 
+            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}, counter: {:?}", self.blob_id, *total_read_time, *counter);
         }
+        
+        *counter += 1;
 
         result
     }
@@ -1159,6 +1163,7 @@ impl BlobBackend for Registry {
             metrics: self.metrics.clone(),
             first: self.first.clone(),
             total_read_time: Mutex::new(Duration::new(0, 0)),
+            counter: Mutex::new(0),
             //cache: blob_cache.clone() //// PATCH ////
         }))
     }
