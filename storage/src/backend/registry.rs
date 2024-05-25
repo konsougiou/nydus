@@ -720,7 +720,6 @@ impl RegistryReader {
                 Err(e) => Err(RegistryError::Common(e)),
             }
         }
-        }
         
 
         //// uio ////
