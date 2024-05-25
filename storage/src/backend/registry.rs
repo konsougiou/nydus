@@ -707,7 +707,21 @@ impl RegistryReader {
         //println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
 
         //// PATCH ////
-
+        let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
+        let path = Path::new(&cache_path);
+        
+        if self.cache_file.is_none()  &&  path.exists() {
+            match File::open(path) {
+                Ok(file) => {
+                    let mut cache_file_guard = self.cache_file.lock().unwrap();
+                    *cache_file_guard = Some(file);
+                    Ok(())
+                }
+                Err(e) => Err(RegistryError::Common(e)),
+            }
+        }
+        }
+        
 
         //// uio ////
 
