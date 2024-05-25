@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::io::{self, Read, Result, Seek};
-use std::os::unix::io::AsRawFd;
+//use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once,  Mutex, RwLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -16,7 +16,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{SeekFrom};
 use memmap2::Mmap;
-use nix::sys::uio;
+//use nix::sys::uio;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
@@ -711,54 +711,52 @@ impl RegistryReader {
 
         //// uio ////
 
+        // let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
+        // let path = Path::new(&cache_path);
+        
+        // let mut cache_file_guard = self.cache_file.lock().unwrap();
+
+        // if cache_file_guard.is_none() && path.exists() {
+        //     if let Ok(file) = File::open(path) {
+        //         *cache_file_guard = Some(file);
+        //     }
+        // }
+
+        // if let Some(ref file) = *cache_file_guard {
+        //     println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
+        //     return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
+        // }
+
         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
-        
-        let mut cache_file_guard = self.cache_file.lock().unwrap();
-
-        if cache_file_guard.is_none() && path.exists() {
-            if let Ok(file) = File::open(path) {
-                *cache_file_guard = Some(file);
-            }
-        }
-
-        
-
-        if let Some(ref file) = *cache_file_guard {
-            println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
-            return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
-        }
-
-        //let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
-        //let path = Path::new(&cache_path);
     
 
          //// DEFAULT ////
 
 
-        //if path.exists() {
+        if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
-            //let start = Instant::now();
+            let start = Instant::now();
 
-            // let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-            // file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
-            // let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+            let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
+            let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
 
 
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
-            //let duration = start.elapsed();
-            //let mut total_read_time = self.total_read_time.lock().unwrap();
-            //*total_read_time += duration;
+            let duration = start.elapsed();
+            let mut total_read_time = self.total_read_time.lock().unwrap();
+            *total_read_time += duration;
 
-            //let log_time_threshold = Duration::from_millis(100);
+            let log_time_threshold = Duration::from_millis(100);
             
-            // if *total_read_time > log_time_threshold {
-            //     println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
-            // }
+            if *total_read_time > log_time_threshold {
+                println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
+            }
 
-        //     return Ok(bytes_read);
-        // }
+            return Ok(bytes_read);
+        }
 
         //// BUFFERED IO ////
 
