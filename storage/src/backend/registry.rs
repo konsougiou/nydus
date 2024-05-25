@@ -737,7 +737,7 @@ impl RegistryReader {
         if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
-            let start = Instant::now();
+            //let start = Instant::now();
 
             let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
             file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
@@ -745,15 +745,15 @@ impl RegistryReader {
 
 
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
-            let duration = start.elapsed();
-            let mut total_read_time = self.total_read_time.lock().unwrap();
-            *total_read_time += duration;
+            // let duration = start.elapsed();
+            // let mut total_read_time = self.total_read_time.lock().unwrap();
+            // *total_read_time += duration;
 
-            let log_time_threshold = Duration::from_millis(100);
+            // let log_time_threshold = Duration::from_millis(100);
             
-            if *total_read_time > log_time_threshold {
-                println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
-            }
+            // if *total_read_time > log_time_threshold {
+            //     println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
+            // }
 
             return Ok(bytes_read);
         }
@@ -1002,7 +1002,8 @@ impl BlobReader for RegistryReader {
 
         *total_read_time += duration;
 
-        if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && *total_read_time > log_time_threshold && *counter % 10 == 0 { 
+        //hardcoded_blob_ids.contains(&self.blob_id.as_str()) && 
+        if *total_read_time > log_time_threshold && *counter % 20 == 0 { 
             println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}, counter: {:?}", self.blob_id, *total_read_time, *counter);
         }
 
