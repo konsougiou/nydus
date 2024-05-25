@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::io::{self, Read, Result, Seek};
+use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once,  Mutex, RwLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -15,7 +16,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{SeekFrom};
 use memmap2::Mmap;
-use uio::pread;
+use nix::sys::uio;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
@@ -711,10 +712,7 @@ impl RegistryReader {
         //// uio ////
 
         if let Some(ref file) = self.cache_file {
-            return pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| {
-                let msg = format!("failed to read data from blob {}, {}", self.blob_id, e);
-                Error::new(ErrorKind::Other, msg)
-            });
+            return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))?
         }
 
         //let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
