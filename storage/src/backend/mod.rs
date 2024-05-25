@@ -16,7 +16,7 @@
 
 use std::fmt;
 use std::io::Read;
-use std::{sync::Arc, time::Duration, time::Instant};
+use std::{sync::Arc, time::Duration};
 
 use fuse_backend_rs::file_buf::FileVolatileSlice;
 use nydus_utils::{
@@ -121,8 +121,6 @@ pub trait BlobReader: Send + Sync {
 
         let mut delayer = Delayer::new(DelayType::BackOff, Duration::from_millis(500));
 
-        let start = Instant::now();
-
         loop {
             match self.try_read(buf, offset) {
                 Ok(size) => {
@@ -150,9 +148,6 @@ pub trait BlobReader: Send + Sync {
             }
         }
     
-        let duration = start.elapsed();
-
-        println!("CSG-M4GIC: KS (nydus) read all time spent: {:?}", duration);
     }
 
     /// Read as much as possible data into buffer.
@@ -162,6 +157,8 @@ pub trait BlobReader: Send + Sync {
         let mut left = buf.len();
 
         //println!("CSG-M4GIC: KS (nydus) read_all for BlobReader");
+
+        //let start = Instant::now();
 
         while left > 0 {
             let cnt = self.read(&mut buf[off..], offset + off as u64)?;

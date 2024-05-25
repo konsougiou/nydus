@@ -8,7 +8,7 @@ use std::error::Error;
 use std::io::{self, Read, Result, Seek};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once,  Mutex, RwLock};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration,, Instant, SystemTime, UNIX_EPOCH};
 use std::{fmt, thread};
 
 use std::fs::File;
@@ -700,7 +700,7 @@ impl RegistryReader {
         offset: u64,
         allow_retry: bool,
     ) -> RegistryResult<usize> {
-        //println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
+        println!("CSG-M4GIC: KS (nydus) try read for blob_id: {:?}", self.blob_id);
 
         //// PATCH ////
 
@@ -958,10 +958,27 @@ impl BlobReader for RegistryReader {
     }
 
     fn try_read(&self, buf: &mut [u8], offset: u64) -> BackendResult<usize> {
+        //println!("CSG-M4GIC: KS (nydus) try_read for blob_id: {:?}", self.blob_id);
+
+        let hardcoded_blob_ids = ["92182a3da467585a1d95ae40f7743d7fe26ca7a90a50681ff55fb2ec6f37b00d"];
+
+        let start = Instant::now();
+
         self.first.handle_force(&mut || -> BackendResult<usize> {
             self._try_read(buf, offset, true)
                 .map_err(BackendError::Registry)
         })
+
+            let duration = start.elapsed();
+            let mut total_read_time = self.total_read_time.lock().unwrap();
+            *total_read_time += duration;
+
+            let log_time_threshold = Duration::from_millis(100);
+            
+            if hardcoded_blob_ids.contains(&self.blob_id.as_str()) && duration > log_time_threshold { 
+                println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
+            }
+
     }
 
     fn metrics(&self) -> &BackendMetrics {
