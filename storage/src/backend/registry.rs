@@ -1175,6 +1175,8 @@ impl BlobBackend for Registry {
         let path = Path::new(&cache_path);
         let file = File::open(path).ok();
 
+        println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, cache file: {:?}", self.blob_id, file);
+
         Ok(Arc::new(RegistryReader {
             blob_id: blob_id.to_owned(),
             state: self.state.clone(),
