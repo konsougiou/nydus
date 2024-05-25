@@ -15,6 +15,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{SeekFrom};
 use memmap2::Mmap;
+use uio::pread;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
 use base64::Engine;
@@ -569,6 +570,7 @@ struct RegistryReader {
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
+    cache_file: Option<File>,
     total_read_time: Mutex<Duration>,
     counter: Mutex<u32>,
     //cache: Arc<BlobCache>, //// PATCH ////
@@ -705,20 +707,33 @@ impl RegistryReader {
 
         //// PATCH ////
 
-        let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
-        let path = Path::new(&cache_path);
+
+        //// uio ////
+
+        if let Some(ref file) = self.cache_file {
+            return pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| {
+                let msg = format!("failed to read data from blob {}, {}", self.blob_id, e);
+                Error::new(ErrorKind::Other, msg)
+            });
+        }
+
+        //let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
+        //let path = Path::new(&cache_path);
     
 
          //// DEFAULT ////
 
-        if path.exists() {
+
+        //if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
             //let start = Instant::now();
 
-            let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-            file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
-            let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+            // let mut file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
+            // file.seek(io::SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
+            // let bytes_read = file.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
+
+
             //println!("CSG-M4GIC: KS (nydus) fetched from cache, blob_id: {:?}, byted_read: {:?}", self.blob_id, bytes_read);
             //let duration = start.elapsed();
             //let mut total_read_time = self.total_read_time.lock().unwrap();
@@ -730,8 +745,8 @@ impl RegistryReader {
             //     println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}", self.blob_id, *total_read_time);
             // }
 
-            return Ok(bytes_read);
-        }
+        //     return Ok(bytes_read);
+        // }
 
         //// BUFFERED IO ////
 
@@ -1156,12 +1171,18 @@ impl BlobBackend for Registry {
 
     fn get_reader(&self, blob_id: &str) -> BackendResult<Arc<dyn BlobReader>> {
         //let blob_cache = Arc::new(BlobCache::new()); //// PATCH ////
+
+        let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", blob_id);
+        let path = Path::new(&cache_path);
+        let file = File::open(path).ok();
+
         Ok(Arc::new(RegistryReader {
             blob_id: blob_id.to_owned(),
             state: self.state.clone(),
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
+            cache_file: file,
             total_read_time: Mutex::new(Duration::new(0, 0)),
             counter: Mutex::new(0),
             //cache: blob_cache.clone() //// PATCH ////
