@@ -715,9 +715,8 @@ impl RegistryReader {
                 Ok(file) => {
                     let mut cache_file_guard = self.cache_file.lock().unwrap();
                     *cache_file_guard = Some(file);
-                    Ok(())
                 }
-                Err(e) => Err(RegistryError::Common(e)),
+                Err(e) => Err(RegistryError::Common(e.to_string())),
             }
         }
         
