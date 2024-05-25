@@ -571,7 +571,7 @@ struct RegistryReader {
     state: Arc<RegistryState>,
     metrics: Arc<BackendMetrics>,
     first: First,
-    cache_file: Option<File>,
+    cache_file: Mutex<Option<File>>,
     total_read_time: Mutex<Duration>,
     counter: Mutex<u32>,
     //cache: Arc<BlobCache>, //// PATCH ////
@@ -714,14 +714,17 @@ impl RegistryReader {
         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
         
-        if self.cache_file.is_none() && path.exists() {
+        let mut cache_file_guard = self.cache_file.lock().unwrap();
+
+        if cache_file_guard.is_none() && path.exists() {
             if let Ok(file) = File::open(path) {
-                self.cache_file = Some(file);
+                *cache_file_guard = Some(file);
             }
         }
+
         
 
-        if let Some(ref file) = self.cache_file {
+        if let Some(ref file) = *cache_file_guard {
             println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
             return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
         }
@@ -783,7 +786,7 @@ impl RegistryReader {
         //     }
         // }
 
-        //// BLOC CACHE ////
+        //// BLOB CACHE ////
 
         // if path.exists() {
         //     let offset = offset as usize;
@@ -1193,7 +1196,7 @@ impl BlobBackend for Registry {
             connection: self.connection.clone(),
             metrics: self.metrics.clone(),
             first: self.first.clone(),
-            cache_file: file,
+            cache_file: Mutex::new(file),
             total_read_time: Mutex::new(Duration::new(0, 0)),
             counter: Mutex::new(0),
             //cache: blob_cache.clone() //// PATCH ////
