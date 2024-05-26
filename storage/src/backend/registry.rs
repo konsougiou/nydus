@@ -995,7 +995,7 @@ impl BlobReader for RegistryReader {
         let mut total_read_time = self.total_read_time.lock().unwrap();
 
         if *total_read_time > log_time_threshold && *counter % 20 == 0 { 
-            println!("CSG-M4GIC: KS (nydus) calling _try_read blob_id: {:?}, counter: {:?}", self.blob_id, *counter);
+            println!("CSG-M4GIC: B3G1N: KS (nydus) calling _try_read blob_id: {:?}, counter: {:?}", self.blob_id, *counter);
         }
 
         let result = self.first.handle_force(&mut || -> BackendResult<usize> {
@@ -1009,7 +1009,7 @@ impl BlobReader for RegistryReader {
 
         //hardcoded_blob_ids.contains(&self.blob_id.as_str()) && 
         if *total_read_time > log_time_threshold && *counter % 20 == 0 { 
-            println!("CSG-M4GIC: KS (nydus) blob_id: {:?}, total time spent: {:?}, counter: {:?}", self.blob_id, *total_read_time, *counter);
+            println!("CSG-M4GIC: END: KS (nydus) blob_id: {:?}, total time spent: {:?}, counter: {:?}", self.blob_id, *total_read_time, *counter);
         }
 
         *counter += 1;
