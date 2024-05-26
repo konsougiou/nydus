@@ -991,14 +991,19 @@ impl BlobReader for RegistryReader {
 
         let start = Instant::now();
 
+        let mut counter = self.counter.lock().unwrap();
+        let mut total_read_time = self.total_read_time.lock().unwrap();
+
+        if *total_read_time > log_time_threshold && *counter % 20 == 0 { 
+            println!("CSG-M4GIC: KS (nydus) calling _try_read blob_id: {:?}, counter: {:?}", self.blob_id, *counter);
+        }
+
         let result = self.first.handle_force(&mut || -> BackendResult<usize> {
             self._try_read(buf, offset, true)
                 .map_err(BackendError::Registry)
         });
 
         let duration = start.elapsed();
-        let mut total_read_time = self.total_read_time.lock().unwrap();
-        let mut counter = self.counter.lock().unwrap();
 
         *total_read_time += duration;
 
