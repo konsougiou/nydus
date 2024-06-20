@@ -708,32 +708,9 @@ impl RegistryReader {
 
         //// PATCH ////
 
-
-        //// uio ////
-
-        // let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
-        // let path = Path::new(&cache_path);
-        
-        // let mut cache_file_guard = self.cache_file.lock().unwrap();
-
-        // if cache_file_guard.is_none() && path.exists() {
-        //     if let Ok(file) = File::open(path) {
-        //         *cache_file_guard = Some(file);
-        //     }
-        // }
-
-        // if let Some(ref file) = *cache_file_guard {
-        //     println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
-        //     return uio::pread(file.as_raw_fd(), buf, offset as i64).map_err(|e| RegistryError::Common(e.to_string()))
-        // }
-
         let cache_path = format!("/run/kata-containers/blob_cache/cache/{}", self.blob_id);
         let path = Path::new(&cache_path);
     
-
-         //// DEFAULT ////
-
-
         if path.exists() {
             //println!("CSG-M4GIC: KS (nydus) fetching from cache, blob_id: {:?}", self.blob_id);
 
@@ -757,47 +734,6 @@ impl RegistryReader {
 
             return Ok(bytes_read);
         }
-
-        //// BUFFERED IO ////
-
-        // if path.exists() {
-        //     let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     let mut reader = BufReader::new(file);
-        //     reader.seek(SeekFrom::Start(offset)).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     let bytes_read = reader.read(buf).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     return Ok(bytes_read);
-        // }
-
-         //// MEM MAPPING ////
-
-        //  if path.exists() {
-        //     let file = File::open(path).map_err(|e| RegistryError::Common(e.to_string()))?;
-        //     let mmap = unsafe { Mmap::map(&file).map_err(|e| RegistryError::Common(e.to_string()))? };
-            
-        //     let start = offset as usize;
-        //     let end = start + buf.len();
-        //     if end <= mmap.len() {
-        //         buf.copy_from_slice(&mmap[start..end]);
-        //         return Ok(buf.len());
-        //     } else {
-        //         return Err(RegistryError::Common("Read out of bounds".to_string()));
-        //     }
-        // }
-
-        //// BLOB CACHE ////
-
-        // if path.exists() {
-        //     let offset = offset as usize;
-        //     match self.cache.try_read(&self.blob_id, buf, offset) {
-        //         Ok(bytes_read) => {
-        //             println!("CSG-M4GIC: KS (nydus) cache.try_read returned ok, blob_id: {:?}", self.blob_id);
-        //             return Ok(bytes_read);
-        //         }
-        //         Err(e) => {
-        //             println!("CSG-M4GIC: KS (nydus) cache.try_read returned error: {:?}", e);
-        //         }
-        //     }
-        // }
 
         //// PATCH ////
 
